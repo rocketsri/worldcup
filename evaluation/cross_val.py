@@ -3,22 +3,24 @@ Rolling WC cross-validation: train on prior tournaments, test on next.
 This is more rigorous than fast_eval (which trains on all pre-val data globally).
 
 Folds (chronological):
-  Fold 1: Train 2006      → Test 2010
-  Fold 2: Train 2006+2010 → Test 2014
+  Fold 1: Train 2006           → Test 2010
+  Fold 2: Train 2006+2010      → Test 2014
   Fold 3: Train 2006+2010+2014 → Test 2018
-  Fold 4: Train 2006+2010+2014+2018 → Test 2022
+  Fold 4: Train 2006+…+2018    → Test 2022
+  Fold 5: Train 2006+…+2022    → Test 2026  ← true out-of-sample holdout
 """
 import numpy as np
 import pandas as pd
 from dataclasses import dataclass, field
 from evaluation.metrics import evaluate_predictions, EvalResult
 
-WC_YEARS = [2006, 2010, 2014, 2018, 2022]
+WC_YEARS = [2006, 2010, 2014, 2018, 2022, 2026]
 FOLD_SPLITS = [
-    ([2006],                    2010),
-    ([2006, 2010],              2014),
-    ([2006, 2010, 2014],        2018),
-    ([2006, 2010, 2014, 2018],  2022),
+    ([2006],                         2010),
+    ([2006, 2010],                   2014),
+    ([2006, 2010, 2014],             2018),
+    ([2006, 2010, 2014, 2018],       2022),
+    ([2006, 2010, 2014, 2018, 2022], 2026),
 ]
 
 

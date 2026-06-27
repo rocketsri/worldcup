@@ -44,7 +44,6 @@ async def run_stat_experiment(
         leaderboard.save(result)
         print(f"  [{config.id}] quick_acc={quick.winner_acc:.3f} ({quick.n_games} games)")
 
-        # Full eval on 2022 WC (if requested)
         if full_val is not None:
             model2 = _make_model(config)
             full = fast_eval(model2, df_all, elo_history, full_val, bf, dc_mode=dc_mode)

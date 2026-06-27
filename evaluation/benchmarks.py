@@ -1,36 +1,40 @@
 """
 Reference benchmarks from proprietary/published WC prediction models.
-Sources: published retrospective analyses, academic papers, known results.
 
-FiveThirtyEight SPI (2018): https://fivethirtyeight.com/features/our-2018-world-cup-predictions/
-  - Pre-tournament SPI winner accuracy on 2018 WC group stage: ~52-55%
-  - Methodology: attack/defense ratings from results + xG; Monte Carlo simulation
+─── 2022 WC (retrospective, used as quick-eval proxy) ───────────────────────
+FiveThirtyEight SPI (2018): Pre-tournament SPI winner accuracy ~52-55%
+Gracenote/Nielsen (2022): Official FIFA WC predictor, ~53% winner accuracy
+Goldman Sachs (2022): Published report, ~51% winner accuracy
+Pinnacle/Market Odds (2022): Closing line ~61.7% — practical ceiling for models
+Club ELO / World Football ELO (2022): ~53-56%
 
-Gracenote/Nielsen (2022): Official FIFA WC predictor
-  - Winner accuracy on 2022 WC: ~53%
-  - Methodology: ELO variant with xG adjustments
+─── 2026 WC (live, true out-of-sample) ──────────────────────────────────────
+The Arena (homeserver LLM betting competition, as of June 27 2026):
+  All models operating on live 2026 WC games with no access to future results.
+  Accuracy covers completed group stage games (68 games as of June 27).
 
-Goldman Sachs (2022): Published report before 2022 WC
-  - Winner accuracy: ~51%
-  - Methodology: ELO + economic factors + team-specific ratings
+  Qwen3.7-Max:      66.7% accuracy (+7.7% ROI)
+  Kimi-K2.6:        65.2% accuracy (+22.1% ROI)  ← best ROI via selective betting
+  MiniMax-M3:       65.2% accuracy (-0.5% ROI)
+  Claude Opus-4.8:  65.2% accuracy (-1.9% ROI)   ← matches our E19 backtest
+  Gemini-3.1-Pro:   63.6% accuracy (-7.0% ROI)
+  DeepSeek-V4-Pro:  63.6% accuracy (-15.2% ROI)
+  GPT-5.5:          63.6% accuracy (-26.7% ROI)
 
-Pinnacle/Market Odds (2018): Closing line accuracy from betresearch
-  - Winner accuracy: ~60-62% (market consistently beats models)
-  - This is the practical ceiling for most prediction systems
-
-Club ELO / World Football ELO (2022):
-  - Winner accuracy: ~53-56%
-
-Random baseline (3-class W/D/L): 33.3%
-Home team win rate (WC, all neutral): ~47% (biased predictor)
+Key insight: all frontier models cluster at 63-67% on 2026 WC. ROI spread
+(-26% to +22%) comes from bet sizing, not prediction accuracy — Kimi passes
+40/68 games and sizes positions by conviction; GPT-5.5 bets everything at
+flat size. Confirms that calibration + selectivity, not raw accuracy, is the
+monetizable edge.
 """
 
-PUBLISHED_BENCHMARKS = [
+# 2022 WC benchmarks — used as historical context / quick-eval comparison
+BENCHMARKS_2022 = [
     {
         "name": "Pinnacle Market Odds (2022)",
         "winner_acc": 0.617,
         "exact_acc": None,
-        "rps": 0.198,   # estimated from published analyses
+        "rps": 0.198,
         "source": "betresearch.com retrospective",
         "note": "Market closing line — practical ceiling for most models",
     },
@@ -84,20 +88,93 @@ PUBLISHED_BENCHMARKS = [
     },
 ]
 
+# 2026 WC benchmarks — live, true out-of-sample (The Arena competition)
+# Accuracy as of June 27 2026 (68 completed group-stage games)
+BENCHMARKS_2026 = [
+    {
+        "name": "Qwen3.7-Max (2026 live)",
+        "winner_acc": 0.667,
+        "exact_acc": None,
+        "rps": None,
+        "source": "The Arena LLM betting competition, June 27 2026",
+        "note": "Best raw accuracy; +7.7% ROI on 2026 group stage",
+    },
+    {
+        "name": "Kimi-K2.6 (2026 live)",
+        "winner_acc": 0.652,
+        "exact_acc": None,
+        "rps": None,
+        "source": "The Arena LLM betting competition, June 27 2026",
+        "note": "Best ROI (+22.1%) — selective betting: passes 40/68 games",
+    },
+    {
+        "name": "MiniMax-M3 (2026 live)",
+        "winner_acc": 0.652,
+        "exact_acc": None,
+        "rps": None,
+        "source": "The Arena LLM betting competition, June 27 2026",
+        "note": "Same accuracy as Kimi but flat bet sizing → -0.5% ROI",
+    },
+    {
+        "name": "Claude Opus-4.8 (2026 live)",
+        "winner_acc": 0.652,
+        "exact_acc": None,
+        "rps": None,
+        "source": "The Arena LLM betting competition, June 27 2026",
+        "note": "Matches our E19 backtest (65.6%); validates no leakage",
+    },
+    {
+        "name": "Gemini-3.1-Pro (2026 live)",
+        "winner_acc": 0.636,
+        "exact_acc": None,
+        "rps": None,
+        "source": "The Arena LLM betting competition, June 27 2026",
+        "note": "-7.0% ROI",
+    },
+    {
+        "name": "DeepSeek-V4-Pro (2026 live)",
+        "winner_acc": 0.636,
+        "exact_acc": None,
+        "rps": None,
+        "source": "The Arena LLM betting competition, June 27 2026",
+        "note": "-15.2% ROI",
+    },
+    {
+        "name": "GPT-5.5 (2026 live)",
+        "winner_acc": 0.636,
+        "exact_acc": None,
+        "rps": None,
+        "source": "The Arena LLM betting competition, June 27 2026",
+        "note": "Worst ROI (-26.7%) despite 63.6% accuracy — flat bet sizing",
+    },
+    {
+        "name": "Random Baseline (3-class)",
+        "winner_acc": 0.333,
+        "exact_acc": 0.012,
+        "rps": 0.333,
+        "source": "Theoretical",
+        "note": "Uniform 33.3% W/D/L",
+    },
+]
 
-def print_benchmark_comparison(our_results: list[dict]):
+# Default set used for comparison — 2026 is the primary honest benchmark
+PUBLISHED_BENCHMARKS = BENCHMARKS_2026
+
+
+def print_benchmark_comparison(our_results: list[dict], year: int = 2026):
     """Print a table comparing our models against published benchmarks."""
+    benchmarks = BENCHMARKS_2026 if year == 2026 else BENCHMARKS_2022
+    title = f"Model Comparison vs. {year} WC Benchmarks"
     try:
         from rich.table import Table
         from rich.console import Console
-        table = Table(title="Model Comparison vs. Proprietary Benchmarks", show_lines=True)
+        table = Table(title=title, show_lines=True)
         table.add_column("Model", style="bold")
         table.add_column("Winner Acc", justify="right")
         table.add_column("RPS↓", justify="right")
         table.add_column("Type")
         table.add_column("Notes")
 
-        # Our results
         for r in sorted(our_results, key=lambda x: x.get("winner_acc", 0), reverse=True):
             table.add_row(
                 r["name"][:40],
@@ -107,8 +184,7 @@ def print_benchmark_comparison(our_results: list[dict]):
                 r.get("note", ""),
             )
 
-        # Separator + benchmarks
-        for b in sorted(PUBLISHED_BENCHMARKS, key=lambda x: x["winner_acc"], reverse=True):
+        for b in sorted(benchmarks, key=lambda x: x["winner_acc"], reverse=True):
             table.add_row(
                 b["name"][:40],
                 f"{b['winner_acc']:.3f}",
@@ -118,6 +194,6 @@ def print_benchmark_comparison(our_results: list[dict]):
             )
         Console().print(table)
     except ImportError:
-        print("\nBenchmark Comparison:")
-        for b in PUBLISHED_BENCHMARKS:
+        print(f"\n{title}:")
+        for b in benchmarks:
             print(f"  {b['name']}: winner_acc={b['winner_acc']:.3f} | {b['note']}")

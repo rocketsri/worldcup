@@ -6,7 +6,7 @@ Phases:
   3. Run LLM experiments (E05-E14), quick eval on 2018 WC
   4. Coordinator grid (E15-E22): deterministic replay of Opus coordinator proposals
   4b. International ELO experiments (E23-E24): run if data/raw/international_results.csv present
-  5. Full eval (top 8 configs) on 2022 WC
+  5. Full eval (top 8 configs) on 2026 WC (true out-of-sample holdout)
   6. Predict 2026 WC Round of 32
 """
 import asyncio
@@ -104,7 +104,7 @@ async def main():
     # ── Phase 1: Data & ELO ──────────────────────────────────────
     print_phase(1, "Loading data & computing ELO ratings")
     df_all = load_all_wc_matches()
-    print(f"  Loaded {len(df_all)} WC matches (2006-2022)")
+    print(f"  Loaded {len(df_all)} WC matches (2006-2026, completed games)")
 
     elo_history, final_elos = compute_elo_history(df_all)
     print(f"  ELO computed for {len(elo_history)} teams")
@@ -196,7 +196,7 @@ async def main():
         leaderboard.display()
 
     # ── Phase 5: Full eval on top configs ────────────────────────
-    print_phase(5, "Full evaluation on 2022 WC (top 8 configs)")
+    print_phase(5, f"Full evaluation on {FULL_EVAL_YEAR} WC (top 8 configs)")
     all_results = list(leaderboard.results.values())
     top8 = sorted(
         [r for r in all_results if r.quick_winner_acc is not None and not r.error],

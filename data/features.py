@@ -195,7 +195,7 @@ _INTL_RANK_CACHE: dict[str, int] | None = None
 
 
 def _get_intl_rank_lookup() -> dict[str, int]:
-    """Lazily build team rank lookup from all-international ELO at 2022-01-01."""
+    """Lazily build team rank lookup from all-international ELO at 2026-01-01."""
     global _INTL_RANK_CACHE
     if _INTL_RANK_CACHE is not None:
         return _INTL_RANK_CACHE
@@ -207,7 +207,7 @@ def _get_intl_rank_lookup() -> dict[str, int]:
     from data.elo import compute_elo_history_international, get_elo_at
     df_intl = pd.read_csv(intl_path, parse_dates=["date"])
     hist, _ = compute_elo_history_international(df_intl)
-    cutoff = pd.Timestamp("2022-01-01")
+    cutoff = pd.Timestamp("2026-01-01")
     teams = set(df_intl["home_team"].tolist() + df_intl["away_team"].tolist())
     elos = {t: get_elo_at(hist, t, cutoff) for t in teams}
     sorted_teams = sorted(elos.items(), key=lambda x: x[1], reverse=True)

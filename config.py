@@ -24,9 +24,9 @@ MODELS = {
 # Concurrency
 LLM_SEMAPHORE_LIMIT = 6
 
-# Quick eval: 2018 WC, Full eval: 2022 WC
-QUICK_EVAL_YEAR = 2018
-FULL_EVAL_YEAR = 2022
+# Quick eval: 2022 WC, Full eval: 2026 WC (true out-of-sample — no leakage possible)
+QUICK_EVAL_YEAR = 2022
+FULL_EVAL_YEAR = 2026
 
 
 def make_clients():

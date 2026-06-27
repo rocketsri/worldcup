@@ -1,7 +1,9 @@
 """Download and cache WC match data from ESPN API.
-Source: site.api.espn.com — 2006-2022, 64 games/year (recent tournaments only).
+Source: site.api.espn.com — 2006-2026 (recent tournaments only).
 Intentional scope: old WC data (pre-2006) is not useful for predicting modern teams
 whose players, coaches, and staff have completely changed.
+2026 WC has 104 scheduled games (72 group stage + 32 knockout); only completed
+games are returned, so partial-tournament evaluation is supported naturally.
 """
 import json
 import requests
@@ -11,7 +13,7 @@ from pathlib import Path
 DATA_DIR = Path(__file__).parent / "raw"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-ESPN_WC_YEARS = [2006, 2010, 2014, 2018, 2022]
+ESPN_WC_YEARS = [2006, 2010, 2014, 2018, 2022, 2026]
 STAGE_MAP = {
     "Group Stage": "group", "Group A": "group", "Group B": "group",
     "Group C": "group", "Group D": "group", "Group E": "group",
@@ -74,7 +76,7 @@ def fetch_espn_wc(year: int) -> list[dict]:
 
 
 def load_all_wc_matches() -> pd.DataFrame:
-    """Return DataFrame of WC matches 2006-2022 from ESPN (320 games)."""
+    """Return DataFrame of WC matches 2006-2026 from ESPN (320 historical + 2026 completed games)."""
     cache = DATA_DIR / "all_wc_matches.csv"
     if cache.exists():
         df = pd.read_csv(cache, parse_dates=["date"])
