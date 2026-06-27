@@ -201,9 +201,12 @@ def _make_model(config: ExperimentConfig):
     use_llm = config.feature_set == "stat_llm"
     if config.model_type == "poisson":
         from models.poisson_model import PoissonModel
-        cols = STAT_FEATURE_COLS.copy()
-        if config.feature_set == "elo_only":
+        if config.feature_cols:
+            cols = config.feature_cols
+        elif config.feature_set == "elo_only":
             cols = ["elo_diff", "stage_weight"]
+        else:
+            cols = STAT_FEATURE_COLS.copy()
         return PoissonModel(feature_cols=cols)
     elif config.model_type == "dixon_coles":
         from models.dixon_coles import DixonColesModel

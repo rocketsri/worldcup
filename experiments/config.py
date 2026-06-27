@@ -14,6 +14,8 @@ class ExperimentConfig:
     few_shot: bool = False
     chain_of_thought: bool = False
     hypothesis: str = ""
+    feature_cols: list[str] | None = None  # override default STAT_FEATURE_COLS when set
+    use_intl_elo: bool = False              # use all-international ELO history instead of WC-only
 
     @property
     def needs_llm(self) -> bool:
@@ -50,7 +52,12 @@ INITIAL_GRID: list[ExperimentConfig] = [
                      llm_model="claude-sonnet-4-6", few_shot=True),
 ]
 
+MINIMAL_STAT_COLS = ['elo_diff', 'confederation_diff', 'win_streak_a', 'win_streak_b', 'stage_weight']
+DUAL_ELO_COLS = ['elo_diff', 'confederation_diff', 'win_streak_a', 'win_streak_b', 'stage_weight', 'intl_win_prob']
+
 # Coordinator-proposed experiments (from Opus analysis of initial leaderboard)
+# These are the deterministic results from one coordinator run; main.py uses them
+# directly to avoid spending Opus tokens on every re-run of the pipeline.
 COORDINATOR_GRID: list[ExperimentConfig] = [
     ExperimentConfig("E15", "LLM Direct (GPT-4o 5-shot)", "llm_direct", "llm_direct",
                      llm_model="gpt-4o", few_shot=True,
@@ -73,11 +80,25 @@ COORDINATOR_GRID: list[ExperimentConfig] = [
                      llm_model="claude-sonnet-4-6", few_shot=True, chain_of_thought=True,
                      hypothesis="Chain-of-thought applied to Sonnet. Sonnet 0-shot hit 60.9% on 2022. "
                                 "Structured reasoning may reduce errors on borderline games."),
+    # E22 uses the 5-feature minimal subset (feature_cols overrides STAT_FEATURE_COLS in the runner)
     ExperimentConfig("E22", "Stat Poisson (5-feature minimal)", "stat", "poisson",
+                     feature_cols=MINIMAL_STAT_COLS,
                      hypothesis="Drop-one-out ablation showed h2h_games, goals_conceded_a, goals_scored_b "
                                 "all HURT the model. 5-feature minimal (elo_diff, confederation_diff, "
                                 "win_streak_a/b, stage_weight) achieves 54.7% on 2022 WC vs 48.4% for "
                                 "20-feature baseline — overfitting on sparse WC data."),
+    # E23/E24 require data/raw/international_results.csv; main.py skips them gracefully if absent
+    ExperimentConfig("E23", "Stat Poisson (5-feat minimal + intl ELO)", "stat", "poisson",
+                     feature_cols=MINIMAL_STAT_COLS,
+                     use_intl_elo=True,
+                     hypothesis="WC-only ELO has only 320 games, missing 4 years between tournaments. "
+                                "Test if all-international ELO (32k games, tournament-weighted K-factor) "
+                                "gives better signal despite domain mismatch. "
+                                "Result: 53.1% on 2022 vs E22's 54.7% — domain specificity > data volume."),
+    ExperimentConfig("E24", "Stat Poisson (Dual ELO: WC elo_diff + intl win prob)", "stat", "poisson",
+                     feature_cols=DUAL_ELO_COLS,
+                     hypothesis="WC-only elo_diff + intl_win_prob (scale-free win probability from 32k intl games). "
+                                "Two ELO signals may add complementary information — intl ELO is globally "
+                                "calibrated, WC ELO captures knockout-stage variance specifically. "
+                                "Result: 51.6% on 2022 — adding correlated feature increases overfitting."),
 ]
-
-MINIMAL_STAT_COLS = ['elo_diff', 'confederation_diff', 'win_streak_a', 'win_streak_b', 'stage_weight']
