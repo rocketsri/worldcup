@@ -1,0 +1,92 @@
+{
+  "exp": "E25",
+  "description": "Kelly criterion betting simulation on 2022 WC (approximate odds)",
+  "odds_source": "Approximated from ELO diff + stage (real odds unavailable)",
+  "kelly": {
+    "bankroll_final": 621113.65,
+    "roi_pct": -37.89,
+    "bets_placed": 26,
+    "bets_total": 64,
+    "win_rate": 0.1923,
+    "total_staked": 1143592.85,
+    "bet_log": [
+      {
+        "match": "Mexico vs Poland",
+        "pick": "A",
+        "odds": 4.5,
+        "stake_pct": 0.09866704047765071,
+        "won": false
+      },
+      {
+        "match": "Brazil vs Serbia",
+        "pick": "A",
+        "odds": 4.5,
+        "stake_pct": 0.05,
+        "won": false
+      },
+      {
+        "match": "Netherlands vs Ecuador",
+        "pick": "D",
+        "odds": 3.4,
+        "stake_pct": 0.05,
+        "won": true
+      },
+      {
+        "match": "Qatar vs Senegal",
+        "pick": "H",
+        "odds": 4.0,
+        "stake_pct": 0.05,
+        "won": false
+      },
+      {
+        "match": "Tunisia vs Australia",
+        "pick": "A",
+        "odds": 4.0,
+        "stake_pct": 0.05,
+        "won": true
+      },
+      {
+        "match": "France vs Denmark",
+        "pick": "D",
+        "odds": 3.4,
+        "stake_pct": 0.05,
+        "won": false
+      },
+      {
+        "match": "Spain vs Germany",
+        "pick": "H",
+        "odds": 4.5,
+        "stake_pct": 0.05,
+        "won": false
+      },
+      {
+        "match": "Japan vs Costa Rica",
+        "pick": "H",
+        "odds": 4.0,
+        "stake_pct": 0.05,
+        "won": false
+      },
+      {
+        "match": "Brazil vs Switzerland",
+        "pick": "D",
+        "odds": 3.4,
+        "stake_pct": 0.05,
+        "won": false
+      },
+      {
+        "match": "Portugal vs Uruguay",
+        "pick": "H",
+        "odds": 4.0,
+        "stake_pct": 0.05,
+        "won": true
+      }
+    ]
+  },
+  "equal_stake_baseline": {
+    "bankroll_final": 1075970.87,
+    "roi_pct": 7.6,
+    "win_rate": 0.5469
+  },
+  "finding": "NEGATIVE RESULT: Kelly on uncalibrated stat model loses -37.9% ROI vs +7.6% flat baseline. Stat model overestimates draw/underdog probability (RPS=0.238 reflects poor calibration). Model says 28-36% for draws/underdogs; they win only 19.2% of those Kelly bets. Kelly amplifies miscalibration - positive-EV detections are false positives. Fix: Platt scaling first, then Kelly. Kimi-K2.6 works because LLMs are better calibrated (RPS~0.177 for Opus).",
+  "key_lesson": "Kelly criterion only works AFTER model calibration. Calibrate first, size second."
+}

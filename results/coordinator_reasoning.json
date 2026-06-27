@@ -1,0 +1,55 @@
+{
+  "leaderboard": "Experiment Leaderboard:\n  E01: ELO-only Poisson | quick=0.484375 full=None rps=None error=None\n  E02: Stat Poisson | quick=0.546875 full=None rps=None error=None\n  E03: Stat Dixon-Coles | quick=0.359375 full=None rps=None error=None\n  E04: Stat XGBoost | quick=0.4375 full=None rps=None error=None\n  E05: Stat+LLM Poisson (Sonnet) | quick=0.546875 full=None rps=None error=None\n  E06: Stat+LLM Poisson (Opus) | quick=0.546875 full=None rps=None error=None\n  E07: Stat+LLM Poisson (GPT-4o) | quick=0.546875 full=None rps=None error=None\n  E08: Stat+LLM Poisson (o3-mini) | quick=None full=None rps=None error=Error code: 400 - {'error': {'message': \"Unsupported parameter: 'max_tokens' is not supported with this model. Use 'max_completion_tokens' instead.\", 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'unsupported_parameter'}}\n  E09: Stat+LLM XGBoost (Sonnet) | quick=0.4375 full=None rps=None error=None\n  E10: LLM Direct (Sonnet 0-shot) | quick=0.671875 full=None rps=None error=None\n  E11: LLM Direct (Opus 0-shot) | quick=0.65625 full=None rps=None error=None\n  E12: LLM Direct (GPT-4o 0-shot) | quick=0.703125 full=None rps=None error=None\n  E13: LLM Direct (o3-mini high) | quick=0.40625 full=None rps=None error=None\n  E14: LLM Direct (Sonnet 5-shot) | quick=0.65625 full=None rps=None error=None",
+  "proposals": [
+    {
+      "id": "E15",
+      "name": "LLM Direct (GPT-4o 5-shot)",
+      "feature_set": "llm_direct",
+      "model_type": "llm_direct",
+      "llm_model": "gpt-4o",
+      "reasoning_effort": null,
+      "few_shot": true,
+      "hypothesis": "GPT-4o is the top performer (0.703). Few-shot did not help Sonnet, but GPT-4o may exploit exemplar formatting/calibration better. This tests whether the best base model benefits from in-context examples, isolating the few_shot effect on the leader rather than a mid-pack model."
+    },
+    {
+      "id": "E16",
+      "name": "Stat+LLM Direct (GPT-4o) Hybrid",
+      "feature_set": "stat_llm",
+      "model_type": "llm_direct",
+      "llm_model": "gpt-4o",
+      "reasoning_effort": null,
+      "few_shot": false,
+      "hypothesis": "Stat features hurt when funneled through a Poisson head (E05-E07 stuck at 0.547), but that may be a model_type bottleneck, not the features. Letting GPT-4o reason directly over stat+LLM features (rather than emitting Poisson rates) may retain its 0.703 reasoning advantage while adding ELO/form/H2H grounding. Critical ablation: does the LLM head or the feature_set drive the stat-LLM degradation?"
+    },
+    {
+      "id": "E17",
+      "name": "LLM Direct (o3-mini high reasoning)",
+      "feature_set": "llm_direct",
+      "model_type": "llm_direct",
+      "llm_model": "o3-mini",
+      "reasoning_effort": "high",
+      "few_shot": false,
+      "hypothesis": "E13 ran o3-mini but scored poorly (0.406); E08 errored on a parameter incompatibility. With reasoning_effort explicitly set to high and the correct API params, o3-mini's chain-of-thought may improve calibration. Tests whether reasoning models are inherently weak at this task or were just misconfigured."
+    },
+    {
+      "id": "E18",
+      "name": "Stat+LLM Poisson (o3-mini) fixed API",
+      "feature_set": "stat_llm",
+      "model_type": "poisson",
+      "llm_model": "o3-mini",
+      "reasoning_effort": "high",
+      "few_shot": false,
+      "hypothesis": "E08 failed only due to the max_tokens vs max_completion_tokens API error, not a modeling issue. Re-running with corrected params completes the Stat+LLM Poisson sweep across all four LLMs, giving a clean comparison point (vs E05-E07 at 0.547) and recovering a lost data point."
+    },
+    {
+      "id": "E19",
+      "name": "LLM Direct Ensemble Inputs (Opus+GPT-4o agreement)",
+      "feature_set": "llm_direct",
+      "model_type": "llm_direct",
+      "llm_model": "claude-opus-4-8",
+      "reasoning_effort": null,
+      "few_shot": true,
+      "hypothesis": "Opus 0-shot (0.656) trailed GPT-4o. Adding few-shot exemplars to Opus tests whether the strongest reasoning-capable Claude can close the gap with GPT-4o when given calibrated examples, and provides a second few-shot data point alongside E14/E15 to determine if few-shot's null effect generalizes across model families."
+    }
+  ]
+}
