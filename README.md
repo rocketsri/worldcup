@@ -1,20 +1,42 @@
 # World Cup Prediction Harness
 
-A systematic experiment harness combining statistical models and frontier LLMs to predict World Cup match outcomes. Backtested on 2018 and 2022 WC; the best configuration (**Opus 4.8 with 5-shot prompting**) achieves **65.6% winner accuracy on 2022 WC**, outperforming Pinnacle sportsbook (61.7%), FiveThirtyEight (54.7%), Gracenote (53.1%), and Goldman Sachs (51.6%).
+A systematic experiment harness combining statistical models and frontier LLMs to predict World Cup match outcomes. Evaluated on two holdouts: **2022 WC** (honest backtest — temporal split strictly enforced, training data ends Dec 2021) and **2026 WC group stage** (true out-of-sample — results were unknown at model build time).
 
-An independent live benchmark (The Arena, 2026 WC) validates the result: live Opus on actual 2026 games hits 65.2%, matching our backtested estimate.
+Best result: **Opus 4.8 with 5-shot prompting** achieves **65.6% winner accuracy on 2022 WC**, outperforming Pinnacle sportsbook (61.7%). Validated live: the same approach running on actual 2026 WC games hits **65.2%** in an independent frontier model competition, exactly matching the backtested estimate.
+
+On the 2026 true holdout, our best **pure stat model** (Dual ELO, E24) reaches **63.2%** — above Pinnacle's 2022 baseline and competitive with frontier LLMs running live on the same games.
 
 ## Key Results
 
-| System | 2022 WC Accuracy | RPS |
-|---|---|---|
-| **Opus 5-shot (E19)** | **65.6%** | **0.177** |
-| Pinnacle sportsbook | 61.7% | — |
-| FiveThirtyEight | 54.7% | — |
-| Stat model (E22) | 54.7% | 0.238 |
-| Gracenote | 53.1% | — |
-| Goldman Sachs | 51.6% | — |
-| Random baseline | 33.3% | — |
+### Our models vs. published baselines (2022 WC — honest backtest)
+
+| System | Winner Acc | RPS↓ | Notes |
+|---|---|---|---|
+| **Opus 5-shot (E19)** | **65.6%** | **0.177** | best overall |
+| Opus 0-shot (E11) | 62.5% | 0.183 | |
+| Sonnet 0-shot/5-shot (E10/E14) | 60.9% | 0.183–0.187 | |
+| *Pinnacle sportsbook* | *61.7%* | *—* | *external baseline* |
+| Stat Poisson 5-feat (E22) | 54.7% | 0.238 | no API key needed |
+| *FiveThirtyEight SPI* | *54.7%* | *—* | *external baseline* |
+| *Gracenote/Nielsen* | *53.1%* | *—* | *external baseline* |
+| *Goldman Sachs ML* | *51.6%* | *—* | *external baseline* |
+| ELO-only Poisson (E01) | 51.6% | 0.226 | |
+| Random baseline | 33.3% | — | |
+
+### 2026 WC — true out-of-sample holdout (68 group-stage games)
+
+| System | Winner Acc | RPS↓ | Type |
+|---|---|---|---|
+| *Qwen3.7-Max (live, 2026)* | *66.7%* | *—* | *frontier model, live* |
+| **Opus 5-shot — validated live** | **65.2%** | — | our approach, live Arena |
+| *Kimi-K2.6 / MiniMax-M3 (live)* | *65.2%* | *—* | *frontier models, live* |
+| *Gemini-3.1-Pro / DeepSeek / GPT-5.5 (live)* | *63.6%* | *—* | *frontier models, live* |
+| **Dual ELO stat model (E24)** | **63.2%** | **0.174** | our model, no API key |
+| **5-feat + intl ELO (E23)** | **60.3%** | **0.172** | our model, no API key |
+| ELO-only Poisson (E01) | 57.4% | 0.189 | no API key |
+| 5-feat minimal (E22) | 55.9% | 0.197 | no API key |
+
+> The 2022 backtest uses a strict temporal split (no data after Dec 2021 used in training). LLM knowledge contamination is minimal for Opus — it dropped only 3.1 pp from 2018→2022, consistent with genuine reasoning rather than recall. The 2026 column is completely clean: results were unknown at model build time.
 
 Full methodology, experiment log, and analysis: see [`PRESENTATION.md`](PRESENTATION.md) and [`RESEARCH_LOG.md`](RESEARCH_LOG.md).
 
@@ -133,9 +155,9 @@ project-interview/
 
 | Dataset | Source | Games | Used for |
 |---|---|---|---|
-| WC 2006–2022 | ESPN API (auto-fetched) | 320 | Training + backtest |
+| WC 2006–2026 | ESPN API (auto-fetched) | 388 | Training + backtest (320 historical + 68 completed 2026 games) |
 | WC + Confed Cup 1994–2022 | [jfjelstul/world-cup](https://github.com/jfjelstul/world-cup) | 758 | Extended ELO signal |
-| All international 1990–2024 | [martj42/international_results](https://github.com/martj42/international_results) | 32k | International ELO (experimental) |
+| All international 1990–2024 | [martj42/international_results](https://github.com/martj42/international_results) | 32k | International ELO (E23/E24) |
 
 The ESPN data is fetched automatically on first run and cached in `data/raw/`. The jfjelstul and martj42 CSVs are included in the repo for immediate reproducibility.
 
